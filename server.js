@@ -5,6 +5,7 @@ const app = express();
 const mongoose = require("mongoose");
 const { Schema } = require("mongoose");
 const dns = require("dns");
+const urlparser = require("url");
 
 /*
 -Gonna need to setup the DB
@@ -33,14 +34,18 @@ app.get("/", function (req, res) {
 app.post("/api/shorturl", (req, res) => {
   console.log("original_url: " + req.body.url);
   const bodyUrl = req.body.url;
-  //dns.lookup(bodyUrl);
-  const urlObj = new Url({ original_url: req.body.url });
-
-  urlObj.save((err, data) => {
-    if (err) {
+  dns.lookup(urlparser.parse(bodyUrl).hostname, (err, callBack) => {
+    if (!callBack) {
       res.json({ error: "Invalid Url" });
+    } else {
+      const urlObj = new Url({ original_url: req.body.url });
+      urlObj.save((err, data) => {
+        if (err) {
+          res.json({ error: "Invalid Url" });
+        }
+        res.json({ original_url: data.original_url, short_url: data.id });
+      });
     }
-    res.json({ original_url: data.original_url, short_url: data.id });
   });
 });
 
