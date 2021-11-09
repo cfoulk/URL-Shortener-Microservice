@@ -26,6 +26,10 @@ mongoose.connect(process.env.MONGO_URI, {
 const urlSchema = new Schema({ original_url: { type: String, unique: true } });
 const Url = mongoose.model("url", urlSchema);
 
+app.get("/", function (req, res) {
+  res.sendFile(process.cwd() + "/views/index.html");
+});
+
 app.post("/api/shorturl", (req, res) => {
   console.log("original_url: " + req.body.url);
   const bodyUrl = req.body.url;
@@ -41,19 +45,15 @@ app.post("/api/shorturl", (req, res) => {
 });
 
 app.get("/api/shorturl/:id", (req, res) => {
-  //const id = req.params;
-  //console.log(id);
-  Url.findById(req.params.id, (err, data) => {
+  const id = req.params.id;
+  console.log(id);
+  Url.findOne({ _id: id }, (err, data) => {
     if (err) {
       res.json({ error: "Invalid Url" });
     } else {
-      res.redirect(data.url);
+      res.redirect(data.original_url);
     }
   });
-});
-
-app.get("/", function (req, res) {
-  res.sendFile(process.cwd() + "/views/index.html");
 });
 
 // Your first API endpoint
